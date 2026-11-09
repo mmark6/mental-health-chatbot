@@ -6,4 +6,12 @@ frontend/dist/
 # Backend
 backend/venv/
 backend/__pycache__/
+# Ignore ML datasets
+backend/datasets/
+*.csv
 *.pyc
+
+
+# Datasets
+backend/datasets/Mental_health.csv
+backend/datasets/mental_disease.csv
