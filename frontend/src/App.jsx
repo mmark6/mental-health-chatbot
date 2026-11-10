@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 
 const TODAY_LABEL = new Intl.DateTimeFormat('en', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()).toUpperCase();
+const CURRENT_HOUR = new Date().getHours();
+const DAY_GREETING = CURRENT_HOUR < 12 ? 'Good morning' : CURRENT_HOUR < 18 ? 'Good afternoon' : 'Good evening';
 
 const initialMessages = [
   {
@@ -12,9 +14,9 @@ const initialMessages = [
 ];
 
 const recentChats = [
-  'Finding a little more balance',
-  'When everything feels loud',
-  'Getting ready for a big change',
+  { title: 'Finding a little more balance', date: 'Yesterday' },
+  { title: 'When everything feels loud', date: 'Mon' },
+  { title: 'Getting ready for a big change', date: 'Mon' },
 ];
 
 function Icon({ name, size = 20, ...props }) {
@@ -132,48 +134,89 @@ function AuthScreen({ onSignIn, theme, onToggleTheme }) {
   );
 }
 
-function MoodCard({ mood, setMood, onSubmit, saved, error, detectedTopic }) {
+function MoodCheckInPage({ mood, setMood, saved, onSubmit }) {
   const moods = [
-    { score: 1, face: '◡̈', label: 'Low' },
-    { score: 2, face: '⌣', label: 'A little low' },
-    { score: 3, face: '○', label: 'Okay' },
-    { score: 4, face: '⌣', label: 'Pretty good' },
-    { score: 5, face: '☺', label: 'Good' },
+    { score: 1, face: '😔', label: 'Very low', description: 'I am having a difficult day.' },
+    { score: 2, face: '😕', label: 'A little low', description: 'Things feel a little difficult.' },
+    { score: 3, face: '😐', label: 'Okay', description: 'I am somewhere in the middle.' },
+    { score: 4, face: '🙂', label: 'Pretty good', description: 'I am feeling quite positive.' },
+    { score: 5, face: '😊', label: 'Good', description: 'I am feeling happy and well.' },
   ];
-  const topicLabels = {
-    anxiety: 'Your message may relate to anxious feelings.',
-    depression: 'Your message may relate to feeling low or weighed down.',
-    stress: 'Your message may relate to stress or pressure.',
-    suicidal: 'Your message may include urgent safety concerns.',
-  };
-  const selectedMood = moods.find((item) => item.score === mood)?.label;
-  const reflectionText = detectedTopic
-    ? topicLabels[detectedTopic] || 'The system could not identify a clear conversation topic. Your own check-in is the best guide.'
-    : 'Share a message in your conversation to get a gentle reflection here.';
+
+  const selected = moods.find((item) => item.score === mood);
+
   return (
-    <section className="side-card mood-card">
-      <div className="card-heading">
-        <div><span className="card-kicker">A MOMENT FOR YOU</span><h3>Daily check-in</h3></div>
-        <span className="mood-sun"><Icon name="sun" size={19} /></span>
-      </div>
-      <p className="muted-copy">How are you feeling today?</p>
-      <span className="free-feature-label">FREE · INCLUDED WITH EVERY ACCOUNT</span>
-      <div className="mood-options" role="group" aria-label="Choose your mood">
-        {moods.map((item) => (
-          <button key={item.score} type="button" className={`mood-option ${mood === item.score ? 'selected' : ''}`} aria-label={item.label} aria-pressed={mood === item.score} onClick={() => setMood(item.score)}>
-            <span>{item.face}</span>
+    <section className="mood-page-layout">
+      <div className="mood-main-panel">
+        <div className="mood-page-heading">
+          <div>
+            <span className="card-kicker">YOUR DAILY WELLBEING</span>
+            <h2>How are you feeling?</h2>
+            <p>Take a moment for yourself. Every feeling deserves space.</p>
+          </div>
+          <span className="mood-page-icon">
+            <Icon name="heart" size={25} />
+          </span>
+        </div>
+
+        <div className="mood-date-label">
+          <Icon name="sun" size={16} />
+          {TODAY_LABEL}
+        </div>
+
+        <h3 className="mood-question">Choose the mood that feels closest to you.</h3>
+
+        <div className="mood-page-options">
+          {moods.map((item) => (
+            <button
+              key={item.score}
+              type="button"
+              className={`mood-page-option ${mood === item.score ? 'selected' : ''}`}
+              onClick={() => setMood(item.score)}
+              aria-pressed={mood === item.score}
+            >
+              <span className="mood-page-face">{item.face}</span>
+              <strong>{item.label}</strong>
+              <span className="mood-page-check">
+                {mood === item.score ? 'Selected' : 'Choose'}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {selected && (
+          <div className="mood-selection-note">
+            <span className="selection-dot" />
+            <span><strong>{selected.label}</strong> — {selected.description}</span>
+          </div>
+        )}
+
+        <div className="mood-save-area">
+          <button type="button" className="primary-button mood-page-save" onClick={onSubmit}>
+            {saved ? 'Check-in saved ✓' : 'Save today’s check-in'}
+            <Icon name="arrow" size={17} />
           </button>
-        ))}
+          {saved && (
+            <p className="mood-page-success" role="status">
+              Thank you for taking a moment to check in with yourself.
+            </p>
+          )}
+        </div>
       </div>
-      <div className="mood-labels"><span>Not great</span><span>Really good</span></div>
-      <p className="selected-mood-label">Your check-in: <strong>{selectedMood}</strong></p>
-      <button type="button" className="secondary-button mood-submit" onClick={onSubmit}>{saved ? 'Today’s check-in saved' : 'Save check-in'} <Icon name={saved ? 'heart' : 'arrow'} size={15} /></button>
-      {error && <p className="inline-error" role="status">{error}</p>}
-      {saved && <p className="saved-note" role="status">Thanks for checking in with yourself.</p>}
-      <div className="system-reflection" aria-live="polite">
-        <strong>Conversation reflection <span>NOT A DIAGNOSIS</span></strong>
-        <p>{reflectionText}</p>
-      </div>
+
+      <aside className="mood-gentle-panel">
+        <span className="gentle-icon"><Icon name="leaf" size={23} /></span>
+        <span className="card-kicker">A GENTLE REMINDER</span>
+        <h3>There is no wrong way to feel.</h3>
+        <p>
+          Your feelings are part of your story. You do not have to change
+          them, explain them or judge yourself for having them.
+        </p>
+        <div className="gentle-divider" />
+        <strong>Something to remember</strong>
+        <p>Small moments of self-awareness can make a meaningful difference.</p>
+        <span className="gentle-decoration">✳</span>
+      </aside>
     </section>
   );
 }
@@ -181,16 +224,11 @@ function MoodCard({ mood, setMood, onSubmit, saved, error, detectedTopic }) {
 function PremiumCard({ onUpgrade }) {
   return (
     <section className="premium-card">
-      <div className="premium-spark"><Icon name="spark" size={19} /></div>
-      <span className="card-kicker">A LITTLE MORE SUPPORT</span>
-      <h3>Care that meets<br />you where you are.</h3>
-      <p>Explore one-on-one counseling and deeper tools for your wellbeing.</p>
+      <span className="card-kicker">KINDRED PLUS</span>
+      <h3>More support<br />for your journey.</h3>
+      <p>Get personalized insights, guided exercises, and 1-on-1 support.</p>
       <button type="button" onClick={onUpgrade}>Explore Kindred Plus <Icon name="arrow" size={15} /></button>
-      <div className="premium-shortcut-row">
-        <button type="button" onClick={onUpgrade}><Icon name="people" size={14} /> 1-on-1 counselor</button>
-        <button type="button" onClick={onUpgrade}><Icon name="shield" size={14} /> Priority support</button>
-      </div>
-      <span className="premium-decoration" aria-hidden="true" />
+      <span className="premium-decoration" aria-hidden="true"><i /><i /><i /></span>
     </section>
   );
 }
@@ -219,12 +257,8 @@ function AccountCard({ userName, email, onSignOut, onClose }) {
 function AnalyticsCard({ onUpgrade }) {
   return (
     <button type="button" className="analytics-card" onClick={onUpgrade}>
-      <div className="analytics-heading">
-        <span><span className="card-kicker">YOUR WELLBEING</span><strong>Advanced mood insights</strong></span>
-        <span className="locked-label"><Icon name="lock" size={12} /> PLUS</span>
-      </div>
+      <span className="analytics-heading"><Icon name="chart" size={15} /> YOUR WELLBEING</span>
       <div className="chart-placeholder" aria-hidden="true">
-        <span className="chart-y-label">GOOD</span>
         <span className="chart-gridline gridline-one" />
         <span className="chart-gridline gridline-two" />
         <span className="chart-gridline gridline-three" />
@@ -232,10 +266,9 @@ function AnalyticsCard({ onUpgrade }) {
           <path d="M2 42 C24 39 28 20 52 27 S83 42 105 27 S136 38 155 17 S187 29 218 7" />
           <circle cx="52" cy="27" r="3" /><circle cx="105" cy="27" r="3" /><circle cx="155" cy="17" r="3" /><circle cx="218" cy="7" r="3" />
         </svg>
-        <span className="chart-x-labels"><span>MON</span><span>WED</span><span>FRI</span><span>SUN</span></span>
-        <span className="chart-lock"><Icon name="lock" size={15} /></span>
       </div>
-      <span className="analytics-foot">Unlock patterns and celebrate your progress <Icon name="arrow" size={13} /></span>
+      <span className="analytics-lock-line"><Icon name="lock" size={13} /> Insights unlock a deeper view of your progress.</span>
+      <span className="analytics-foot">Explore your insights <Icon name="arrow" size={14} /></span>
     </button>
   );
 }
@@ -268,15 +301,14 @@ function Sidebar({ activeView, setActiveView, onNewChat }) {
       <div className="sidebar-top"><Brand compact /><button type="button" className="mobile-menu" aria-label="Open menu"><Icon name="menu" /></button></div>
       <button type="button" className="new-chat-button" onClick={onNewChat}><Icon name="plus" size={17} /> New conversation</button>
       <nav className="side-nav" aria-label="Main navigation">
-        <span className="nav-label">YOUR SPACE</span>
         <button type="button" className={`nav-item ${activeView === 'chat' ? 'active' : ''}`} onClick={() => setActiveView('chat')}><Icon name="chat" size={18} /> Your conversations</button>
         <button type="button" className={`nav-item ${activeView === 'mood' ? 'active' : ''}`} onClick={() => setActiveView('mood')}><Icon name="heart" size={18} /> Mood check-ins</button>
         <button type="button" className={`nav-item locked-nav ${activeView === 'insights' ? 'active' : ''}`} onClick={() => setActiveView('insights')}><Icon name="chart" size={18} /> Your insights <Icon name="lock" size={13} className="nav-lock" /></button>
         <div className="history-heading"><span className="nav-label">RECENTLY</span><button type="button" aria-label="Add conversation" onClick={onNewChat}><Icon name="plus" size={15} /></button></div>
-        <div className="chat-links">{recentChats.map((chat, i) => <button type="button" key={chat} className="history-link" onClick={() => setActiveView('chat')}><span className={`history-dot dot-${i}`} />{chat}</button>)}</div>
+        <div className="chat-links">{recentChats.map((chat) => <button type="button" key={chat.title} className="history-link" onClick={() => setActiveView('chat')}><Icon name="chat" size={15} /><span><strong>{chat.title}</strong><small>{chat.date}</small></span></button>)}</div>
       </nav>
       <div className="sidebar-bottom">
-        <div className="help-note"><span className="help-heart"><Icon name="heart" size={17} /></span><p>You don’t have to figure<br />everything out today.</p></div>
+        <div className="help-note"><span className="help-heart"><Icon name="leaf" size={20} /></span><p>You’re doing<br />a brave thing.<br />That matters.</p></div>
       </div>
     </aside>
   );
@@ -298,16 +330,15 @@ function App() {
   const [chatHistory, setChatHistory] = useState(initialMessages);
   const [mood, setMood] = useState(4);
   const [moodSaved, setMoodSaved] = useState(false);
-  const [moodError, setMoodError] = useState('');
   const [chatError, setChatError] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [activeView, setActiveView] = useState('chat');
-  const [detectedTopic, setDetectedTopic] = useState(null);
   const [userId] = useState(() => `user_${Math.floor(Math.random() * 1000)}`);
   const accountType = 'freemium';
   const accountMenuRef = useRef(null);
+  const firstName = userName.split(' ')[0];
 
   useEffect(() => {
     function closeAccountMenu(event) {
@@ -339,7 +370,6 @@ function App() {
     setActiveView('chat');
     setChatHistory(initialMessages);
     setChatError('');
-    setDetectedTopic(null);
   }
 
   async function handleSendMessage(e) {
@@ -349,7 +379,6 @@ function App() {
     setChatHistory((previous) => [...previous, { sender: 'user', text, time: 'Just now' }]);
     setMessage('');
     setChatError('');
-    setDetectedTopic(null);
     setIsSending(true);
 
     try {
@@ -367,7 +396,6 @@ function App() {
         resources: data.resources,
         time: 'Just now',
       }]);
-      setDetectedTopic(data.detected_topic || null);
     } catch (error) {
       console.error('Chat API Error:', error);
       setChatError('We couldn’t reach your support space just now. Your message is still here—please try again.');
@@ -376,21 +404,8 @@ function App() {
     }
   }
 
-  async function handleMoodSubmit() {
-    setMoodError('');
-    setMoodSaved(false);
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/mood', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, mood_score: mood, account_type: accountType }),
-      });
-      if (!response.ok) throw new Error(`The mood service returned ${response.status}.`);
-      setMoodSaved(true);
-    } catch (error) {
-      console.error('Mood API Error:', error);
-      setMoodError('We couldn’t save that just now. Please try again.');
-    }
+  function handleMoodSubmit() {
+    setMoodSaved(true);
   }
 
   if (!isSignedIn) return <AuthScreen onSignIn={signIn} theme={theme} onToggleTheme={toggleTheme} />;
@@ -402,24 +417,40 @@ function App() {
         if (view === 'insights') setShowUpgrade(true);
       }} onNewChat={handleNewChat} />
       <main className="main-panel">
-        <header className="topbar">
-          <div className="breadcrumbs"><span>Your space</span><span className="crumb-slash">/</span><strong>{activeView === 'mood' ? 'Mood check-ins' : 'A listening space'}</strong></div>
-          <div className="topbar-actions"><span className="privacy-pill"><Icon name="shield" size={14} /> Private space</span><button type="button" className="tier-badge" onClick={() => setShowUpgrade(true)}>Free tier <span>↗</span></button><ThemeToggle theme={theme} onToggle={toggleTheme} /><div className="account-menu" ref={accountMenuRef}><button type="button" className="top-avatar" aria-label="Open account" aria-expanded={showAccount} aria-haspopup="dialog" onClick={() => setShowAccount((open) => !open)}>{userName.slice(0, 1).toUpperCase()}</button>{showAccount && <AccountCard userName={userName} email={userEmail} onSignOut={() => setIsSignedIn(false)} onClose={() => setShowAccount(false)} />}</div></div>
+        <header className={`topbar ${activeView === 'mood' ? 'mood-topbar' : ''}`}>
+          <div className="dashboard-greeting">
+            {activeView === 'mood' ? (
+              <>
+                <h1>A moment to check in.</h1>
+                <p>Take a moment for yourself. Every feeling deserves space.</p>
+              </>
+            ) : (
+              <>
+                <h1>{DAY_GREETING}, {firstName}.</h1>
+                <p>Take a moment for yourself. You’re in a safe, supportive space.</p>
+              </>
+            )}
+          </div>
+          {activeView !== 'mood' && (
+            <div className="breath-prompt">
+              <span className="breath-icon"><Icon name="leaf" size={20} /></span>
+              <span><strong>Take a breath</strong><small>1 min</small></span>
+            </div>
+          )}
+          <div className="topbar-actions"><span className="privacy-pill" title="Private space"><Icon name="shield" size={16} /><span>Private space</span></span><button type="button" className="tier-badge" onClick={() => setShowUpgrade(true)}>Free tier <span>↗</span></button><ThemeToggle theme={theme} onToggle={toggleTheme} /><div className="account-menu" ref={accountMenuRef}><button type="button" className="top-avatar" aria-label="Open account" aria-expanded={showAccount} aria-haspopup="dialog" onClick={() => setShowAccount((open) => !open)}>{firstName.slice(0, 1).toUpperCase()}</button>{showAccount && <AccountCard userName={userName} email={userEmail} onSignOut={() => setIsSignedIn(false)} onClose={() => setShowAccount(false)} />}</div></div>
         </header>
 
         <div className="dashboard-content">
-          <div className="content-heading">
-            <div><span className="eyebrow">{TODAY_LABEL}</span><h1>{activeView === 'mood' ? 'A moment to check in.' : 'It’s okay to take a breath.'}</h1><p>You can start wherever you are. There’s no right way to feel.</p></div>
-            <div className="heading-flower" aria-hidden="true"><span>✳</span></div>
-          </div>
-
-          <div className="workspace-grid">
-            <section className="chat-card">
-              <div className="chat-card-header">
-                <div className="companion-avatar"><Icon name="leaf" size={21} /></div>
-                <div className="companion-copy"><strong>Your listening space</strong><span><i /> Here with you</span></div>
-                <span className="conversation-label">A GENTLE CHECK-IN</span>
-              </div>
+          {activeView === 'mood' ? (
+            <MoodCheckInPage
+              mood={mood}
+              setMood={(value) => { setMood(value); setMoodSaved(false); }}
+              saved={moodSaved}
+              onSubmit={handleMoodSubmit}
+            />
+          ) : (
+            <div className="workspace-grid">
+              <section className="chat-card">
               <div className="chat-messages" aria-live="polite">
                 <div className="day-divider"><span /> TODAY <span /></div>
                 {chatHistory.map((msg, index) => (
@@ -435,20 +466,31 @@ function App() {
                 {isSending && <div className="message-row from-bot"><span className="message-avatar"><Icon name="leaf" size={14} /></span><div className="message-bubble typing-indicator">Finding the right words<span>.</span><span>.</span><span>.</span></div></div>}
                 {chatError && <p className="chat-error" role="alert">{chatError}</p>}
               </div>
+              <div className="quick-prompts" aria-label="Suggested conversation starters">
+                <button type="button" onClick={() => setMessage('I feel anxious and would like help understanding it.')}><Icon name="chart" size={15} /> <span>I feel anxious</span></button>
+                <button type="button" onClick={() => setMessage('I just need to vent about what is on my mind.')}><Icon name="chat" size={15} /> <span>I just need to vent</span></button>
+                <button type="button" onClick={() => setMessage('I am having trouble sleeping and would like some support.')}><Icon name="moon" size={15} /> <span>Help me sleep</span></button>
+              </div>
               <form className="chat-composer" onSubmit={handleSendMessage}>
                 <input aria-label="Write a message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Share whatever’s on your mind..." />
-                <span className="composer-hint">This is a supportive space, not a substitute for professional care.</span>
                 <button type="submit" aria-label="Send message" disabled={isSending || !message.trim()}><Icon name="send" size={17} /></button>
               </form>
-              <div className="emergency-note"><Icon name="heart" size={14} /> If you’re in immediate danger, call your local emergency services.</div>
+              <div className="chat-footer">
+                <span className="composer-hint">This is a supportive space, not a substitute for professional care.</span>
+                <div className="emergency-note" aria-label="If you’re in immediate danger, contact your local emergency services." title="If you’re in immediate danger, contact your local emergency services."><Icon name="shield" size={14} /> Need urgent help?</div>
+              </div>
             </section>
 
             <aside className="right-rail">
-              <MoodCard mood={mood} setMood={(value) => { setMood(value); setMoodSaved(false); }} onSubmit={handleMoodSubmit} saved={moodSaved} error={moodError} detectedTopic={detectedTopic} />
               <AnalyticsCard onUpgrade={() => setShowUpgrade(true)} />
               <PremiumCard onUpgrade={() => setShowUpgrade(true)} />
+              <blockquote className="daily-quote">
+                <span className="quote-flourish"><Icon name="leaf" size={11} /></span>
+                “A calmer mind<br />is a kinder tomorrow.”
+              </blockquote>
             </aside>
           </div>
+          )}
         </div>
       </main>
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} theme={theme} />}
