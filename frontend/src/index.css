@@ -1,38 +1,91 @@
-:root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --serif: Georgia, "Times New Roman", serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #273934;
-  background: #fffefa;
-}
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  html {
+    font-size: 16px;
+    min-width: 320px;
+    min-height: 100%;
+    background: #fffefa;
+  }
 
-html {
-  min-width: 320px;
-  min-height: 100%;
-  background: #fffefa;
-}
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
 
-body {
-  min-width: 320px;
-  min-height: 100vh;
-  margin: 0;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-button:focus-visible,
-input:focus-visible {
-  outline: 3px solid rgba(98, 128, 105, .38);
-  outline-offset: 2px;
-}
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
 
-::selection {
-  background: #dce8d9;
-  color: #344a3d;
+  button {
+    color: inherit;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    color: var(--text);
+  }
+
+  strong {
+    color: var(--heading);
+  }
+
+  h1, h2, h3 {
+    margin: 0 0 1.25rem;
+    color: var(--heading);
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(28px, 3vw, 40px);
+    letter-spacing: -0.5px;
+  }
+
+  h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(24px, 2.5vw, 32px);
+    letter-spacing: -0.4px;
+  }
+
+  h3 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 3px solid rgba(47, 160, 79, 0.35);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
 }

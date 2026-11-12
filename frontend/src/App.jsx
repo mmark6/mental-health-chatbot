@@ -1,17 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import Chatbot from './Chatbot.jsx';
 import './App.css';
 
 const TODAY_LABEL = new Intl.DateTimeFormat('en', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()).toUpperCase();
 const CURRENT_HOUR = new Date().getHours();
 const DAY_GREETING = CURRENT_HOUR < 12 ? 'Good morning' : CURRENT_HOUR < 18 ? 'Good afternoon' : 'Good evening';
-
-const initialMessages = [
-  {
-    sender: 'bot',
-    text: 'Hi Alex, I’m glad you’re here. This is a space to pause, reflect, and talk things through at your own pace. What’s on your mind today?',
-    time: 'Just now',
-  },
-];
 
 const recentChats = [
   { title: 'Finding a little more balance', date: 'Yesterday' },
@@ -326,17 +319,12 @@ function App() {
       return 'light';
     }
   });
-  const [message, setMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState(initialMessages);
   const [mood, setMood] = useState(4);
   const [moodSaved, setMoodSaved] = useState(false);
-  const [chatError, setChatError] = useState('');
-  const [isSending, setIsSending] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [activeView, setActiveView] = useState('chat');
-  const [userId] = useState(() => `user_${Math.floor(Math.random() * 1000)}`);
-  const accountType = 'freemium';
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const accountMenuRef = useRef(null);
   const firstName = userName.split(' ')[0];
 
@@ -368,40 +356,7 @@ function App() {
 
   function handleNewChat() {
     setActiveView('chat');
-    setChatHistory(initialMessages);
-    setChatError('');
-  }
-
-  async function handleSendMessage(e) {
-    e.preventDefault();
-    const text = message.trim();
-    if (!text || isSending) return;
-    setChatHistory((previous) => [...previous, { sender: 'user', text, time: 'Just now' }]);
-    setMessage('');
-    setChatError('');
-    setIsSending(true);
-
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, message: text, account_type: accountType }),
-      });
-      if (!response.ok) throw new Error(`The chat service returned ${response.status}.`);
-      const data = await response.json();
-      if (!data.reply) throw new Error('The chat service did not return a reply.');
-      setChatHistory((previous) => [...previous, {
-        sender: 'bot',
-        text: data.reply,
-        resources: data.resources,
-        time: 'Just now',
-      }]);
-    } catch (error) {
-      console.error('Chat API Error:', error);
-      setChatError('We couldn’t reach your support space just now. Your message is still here—please try again.');
-    } finally {
-      setIsSending(false);
-    }
+    setSessionId(crypto.randomUUID());
   }
 
   function handleMoodSubmit() {
@@ -441,45 +396,16 @@ function App() {
         </header>
 
         <div className="dashboard-content">
-          {activeView === 'mood' ? (
+          {activeView === 'mood' && (
             <MoodCheckInPage
               mood={mood}
               setMood={(value) => { setMood(value); setMoodSaved(false); }}
               saved={moodSaved}
               onSubmit={handleMoodSubmit}
             />
-          ) : (
-            <div className="workspace-grid">
-              <section className="chat-card">
-              <div className="chat-messages" aria-live="polite">
-                <div className="day-divider"><span /> TODAY <span /></div>
-                {chatHistory.map((msg, index) => (
-                  <div className={`message-row ${msg.sender === 'user' ? 'from-user' : 'from-bot'}`} key={`${index}-${msg.sender}`}>
-                    {msg.sender === 'bot' && <span className="message-avatar"><Icon name="leaf" size={14} /></span>}
-                    <div className="message-content">
-                      <div className="message-bubble">{msg.text}</div>
-                      {msg.resources?.length > 0 && <div className="resources-box"><strong>Helpful resources</strong><ul>{msg.resources.map((resource, i) => <li key={`${resource}-${i}`}>{resource}</li>)}</ul></div>}
-                      <span className="message-time">{msg.time || 'Just now'}</span>
-                    </div>
-                  </div>
-                ))}
-                {isSending && <div className="message-row from-bot"><span className="message-avatar"><Icon name="leaf" size={14} /></span><div className="message-bubble typing-indicator">Finding the right words<span>.</span><span>.</span><span>.</span></div></div>}
-                {chatError && <p className="chat-error" role="alert">{chatError}</p>}
-              </div>
-              <div className="quick-prompts" aria-label="Suggested conversation starters">
-                <button type="button" onClick={() => setMessage('I feel anxious and would like help understanding it.')}><Icon name="chart" size={15} /> <span>I feel anxious</span></button>
-                <button type="button" onClick={() => setMessage('I just need to vent about what is on my mind.')}><Icon name="chat" size={15} /> <span>I just need to vent</span></button>
-                <button type="button" onClick={() => setMessage('I am having trouble sleeping and would like some support.')}><Icon name="moon" size={15} /> <span>Help me sleep</span></button>
-              </div>
-              <form className="chat-composer" onSubmit={handleSendMessage}>
-                <input aria-label="Write a message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Share whatever’s on your mind..." />
-                <button type="submit" aria-label="Send message" disabled={isSending || !message.trim()}><Icon name="send" size={17} /></button>
-              </form>
-              <div className="chat-footer">
-                <span className="composer-hint">This is a supportive space, not a substitute for professional care.</span>
-                <div className="emergency-note" aria-label="If you’re in immediate danger, contact your local emergency services." title="If you’re in immediate danger, contact your local emergency services."><Icon name="shield" size={14} /> Need urgent help?</div>
-              </div>
-            </section>
+          )}
+          <div className="workspace-grid" hidden={activeView === 'mood'}>
+            <Chatbot key={sessionId} sessionId={sessionId} />
 
             <aside className="right-rail">
               <AnalyticsCard onUpgrade={() => setShowUpgrade(true)} />
@@ -490,7 +416,6 @@ function App() {
               </blockquote>
             </aside>
           </div>
-          )}
         </div>
       </main>
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} theme={theme} />}

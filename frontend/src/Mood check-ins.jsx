@@ -1,6 +1,12 @@
 
 import React from 'react';
 
+const TODAY_LABEL = new Intl.DateTimeFormat('en', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+}).format(new Date()).toUpperCase();
+
 function MoodCheckIn({ mood, setMood, saved, onSubmit }) {
   const moods = [
     { score: 1, face: '😔', label: 'Very low', description: 'I am having a difficult day.' },
@@ -25,11 +31,7 @@ function MoodCheckIn({ mood, setMood, saved, onSubmit }) {
         </div>
 
         <div className="mood-date-label">
-          {new Date().toLocaleDateString('en', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-          }).toUpperCase()}
+          {TODAY_LABEL}
         </div>
 
         <h3 className="mood-question">

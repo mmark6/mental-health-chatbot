@@ -6,6 +6,7 @@ frontend/dist/
 # Backend
 backend/venv/
 backend/__pycache__/
+backend/.env
 # Ignore ML datasets
 backend/datasets/
 *.csv
