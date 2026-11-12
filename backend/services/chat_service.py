@@ -27,7 +27,7 @@ and compassionately. Encourage them to contact local emergency services or a
 crisis line now and, if possible, reach a trusted person nearby. Do not invent
 hotline numbers or promise confidentiality or outcomes."""
 
-MODEL_ID = "llama-3.1-8b-instant"
+MODEL_ID = "openai/gpt-oss-20b"
 MAX_COMPLETION_TOKENS = 2048
 REQUEST_TIMEOUT_SECONDS = 30
 
@@ -74,7 +74,7 @@ def generate_chat_response(
             temperature=1,
             max_completion_tokens=MAX_COMPLETION_TOKENS,
             top_p=1,
-            reasoning_effort="medium",
+            #reasoning_effort="medium",
             stream=True,
         )
         response_parts = []

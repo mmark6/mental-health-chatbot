@@ -16,3 +16,6 @@ backend/datasets/
 # Datasets
 backend/datasets/Mental_health.csv
 backend/datasets/mental_disease.csv
+
+#vscode
+.vscode/
