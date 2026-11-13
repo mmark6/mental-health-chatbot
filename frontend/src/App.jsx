@@ -115,8 +115,7 @@ function AuthScreen({ onSignIn, theme, onToggleTheme }) {
           <div className="divider"><span />or continue with<span /></div>
           <div className="social-buttons">
             <button type="button" className="social-button" onClick={() => showConnectionNotice('Google')}><span className="google-mark">G</span>Continue with Google</button>
-            <button type="button" className="social-button" onClick={() => showConnectionNotice('Microsoft / Outlook')}><span className="microsoft-mark"><i /><i /><i /><i /></span>Continue with Microsoft / Outlook</button>
-            <button type="button" className="social-button" onClick={() => showConnectionNotice('X')}><Icon name="x" size={16} />Continue with X</button>
+  
           </div>
           {notice && <p className="auth-notice" role="status">{notice}</p>}
           <p className="auth-signup">New to Kindred? <button type="button" className="text-button" onClick={() => onSignIn(email.trim())}>Create an account</button></p>
